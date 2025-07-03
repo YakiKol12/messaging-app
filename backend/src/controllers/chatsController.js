@@ -21,6 +21,10 @@ const createChat = async (req, res) => {
                 id: true
             }
         });
+        const existingUserIds = users.map(user => user.id);
+        if (existingUserIds.length !== userIds.length) {
+            return res.status(404).json({ error: 'One or more users not found' });
+        }
 
         // Check if a chat already exists with the same participants
         const chats = await prisma.chat.findMany({
@@ -40,7 +44,9 @@ const createChat = async (req, res) => {
         }
 
         // Create a new chat
-        const chat = await prisma.chat.create();
+        const chat = await prisma.chat.create(
+            { data: {} }
+        );
 
         const chatParticipants = userIds.map(userId => ({
             userId,
@@ -59,7 +65,38 @@ const createChat = async (req, res) => {
     }
 };
 
+const openChatById = async (req, res) => {
+    const id = req.params.id;
+    console.log('Opening chat with ID:', id);
+    try {
+        const chat = await prisma.chat.findUnique({
+            where: { id },
+            include: {
+                participants: {
+                    include: {
+                        user: true
+                    }
+                },
+                messages: {
+                    include: {
+                        sender: true
+                    }
+                }
+            }
+        });
+
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found' });
+        }
+
+        res.status(200).json(chat);
+    } catch (error) {
+        console.error('Error opening chat:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
 
 module.exports = {
-  createChat,
+    createChat,
+    openChatById
 };
