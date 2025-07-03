@@ -13,11 +13,11 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Server is running');
-});
-
 app.use('/users', userRoutes);
+
+app.get('/', (req, res) => {
+  res.send('Welcome to the Messaging App API');
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
