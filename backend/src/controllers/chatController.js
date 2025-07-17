@@ -36,10 +36,11 @@ const getMessages = async (req, res) => {
     try {
         const messages = await prisma.message.findMany({
             where: { chatId },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { sentAt: 'asc' },
         });
         res.status(200).json(messages);
     } catch (error) {
+        console.error('Error retrieving messages:', error);
         res.status(500).json({ error: 'Failed to retrieve messages' });
     }
 };

@@ -1,52 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import './index.css'
+import './App.css';
+import './index.css';
 
-import MessageBubble from './components/MessageBubble'
+import ChatPage from './pages/ChatPage/ChatPage';
+import ChatsList from './components/ChatsList';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="flex h-screen">
+      {/* Sidebar (Chats List) */}
+      <div className="w-80 bg-gray-100 border-r overflow-y-auto">
+        <ChatsList />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 bg-white">
+        <ChatPage />
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-
-      <MessageBubble
-        userId="user1"
-        text="Hello, this is a message!"
-        timestamp="2023-10-01 12:00"
-        isOwn={true}
-      />
-      <MessageBubble
-        userId="user2"
-        text="Hi there! This is another message."
-        timestamp="2023-10-01 12:01"
-        isOwn={false}
-      />
-
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
