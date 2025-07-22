@@ -12,7 +12,7 @@ router.post('/pin/:id', chatsController.pinChat);
 router.post('/unpin/:id', chatsController.unpinChat);
 
 // Get all chats
-router.get('/all', chatsController.getAllChats);
+router.get('/all/:userId', chatsController.getAllChats);
 
 // Get a chat by ID
 router.get('/open/:id', chatsController.openChatById);

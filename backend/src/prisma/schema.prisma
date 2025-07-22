@@ -31,6 +31,7 @@ model Message {
 
 model Chat {
   id              String            @id @unique @default(uuid())
+  title           String            @default("")
   createdAt       DateTime          @default(now())
   pinned          Boolean           @default(false)
   lastMessageText String            @default("")

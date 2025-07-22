@@ -87,7 +87,7 @@ const getUserById = async (req, res) => {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(id, 10) }
+      where: { id }
     });
 
     if (!user) {
@@ -131,7 +131,7 @@ const deleteUserById = async (req, res) => {
 
   try {
     const user = await prisma.user.delete({
-      where: { id: parseInt(id, 10) }
+      where: { id }
     });
 
     res.json({ message: 'User deleted successfully', user });

@@ -12,8 +12,6 @@ export default function ChatPage() {
 
   useEffect(() => {
     chatController.init().then(() => {
-      console.log("Controller messages:", chatController.messages);
-      console.log(Array.isArray(chatController.messages))
       setMessages(chatController.messages);
     });
   }, [chatController]);

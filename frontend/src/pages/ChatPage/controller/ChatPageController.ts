@@ -5,10 +5,11 @@ class ChatPageController {
   messages: Message[] = [];
 
   async init() {
-    const response = await getMessages("943629fe-8386-4c74-97b9-78fd8271dfd5");
-    console.log("Raw response:", response);
-
-    // If API returns { messages: [...] }, extract it
+    const response = await getMessages("b4ee5105-aabd-4c74-a631-3022337ec5ec");
+    if (!response) {
+      console.error("Failed to fetch messages");
+      return [];
+    }
     this.messages = Array.isArray(response) ? response : [];
     return this.messages;
   }

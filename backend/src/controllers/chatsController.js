@@ -3,7 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const createChat = async (req, res) => {
-    const { userIds } = req.body;
+    const { userIds, title, currentUserId } = req.body;
     try {
         // Validate userIds
         if (!Array.isArray(userIds) || userIds.length === 0) {
@@ -26,11 +26,11 @@ const createChat = async (req, res) => {
             return res.status(404).json({ error: 'One or more users not found' });
         }
 
-        // Check if a chat already exists with the same participants
-        const chats = await prisma.chat.findMany({
+        // Fetch all chats with the same number of participants
+        const candidateChats = await prisma.chat.findMany({
             where: {
                 participants: {
-                    every: {
+                    some: {
                         userId: { in: userIds }
                     }
                 }
@@ -39,14 +39,35 @@ const createChat = async (req, res) => {
                 participants: true
             }
         });
-        if (chats.length > 0) {
+
+        // Find an exact match
+        const existingChat = candidateChats.find(chat => {
+            const chatUserIds = chat.participants.map(p => p.userId).sort();
+            const inputUserIds = [...userIds].sort();
+            return (
+                chatUserIds.length === inputUserIds.length &&
+                chatUserIds.every((id, index) => id === inputUserIds[index])
+            );
+        });
+
+        if (existingChat) {
             return res.status(409).json({ error: 'Chat already exists with these participants' });
         }
 
-        // Create a new chat
-        const chat = await prisma.chat.create(
-            { data: {} }
-        );
+        let chatTitle = title;
+        if (!title && userIds.length === 2 && currentUserId) {
+            // Direct chat: title is the name of the other participant
+            const otherUserId = userIds.find(id => id !== currentUserId);
+            const otherUser = await prisma.user.findUnique({ where: { id: otherUserId } });
+            chatTitle = otherUser ? otherUser.name : "";
+        }
+
+        // Create a new chat with title
+        const chat = await prisma.chat.create({
+            data: {
+                title: chatTitle || ""
+            }
+        });
 
         const chatParticipants = userIds.map(userId => ({
             userId,
@@ -99,7 +120,7 @@ const readChatById = async (req, res) => {
 };
 
 const openChatById = async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
     console.log('Opening chat with ID:', id);
     try {
         const chat = await prisma.chat.findUnique({
@@ -130,8 +151,21 @@ const openChatById = async (req, res) => {
 };
 
 const getAllChats = async (req, res) => {
+    const { userId } = req.params;
     try {
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+
+        // Fetch all chats for the user
         const chats = await prisma.chat.findMany({
+            where: {
+                participants: {
+                    some: {
+                        userId: userId
+                    }
+                }
+            },
             include: {
                 participants: {
                     include: {
@@ -154,7 +188,7 @@ const getAllChats = async (req, res) => {
 };
 
 const deleteChatById = async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
 
     try {
         const chat = await prisma.chat.findUnique({
@@ -165,6 +199,17 @@ const deleteChatById = async (req, res) => {
             return res.status(404).json({ error: 'Chat not found' });
         }
 
+        // Delete related ChatParticipants
+        await prisma.chatParticipant.deleteMany({
+            where: { chatId: id }
+        });
+
+        // Delete related Messages
+        await prisma.message.deleteMany({
+            where: { chatId: id }
+        });
+
+        // Now delete the chat
         await prisma.chat.delete({
             where: { id }
         });
